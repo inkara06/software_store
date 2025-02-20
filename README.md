@@ -19,7 +19,7 @@ Laptop Store is a web application that allows you to manage laptop data, place o
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository_link>
+git clone git@github.com:inkara06/software_store.git
 cd laptop_store
 ```
 
