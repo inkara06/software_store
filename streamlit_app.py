@@ -120,6 +120,34 @@ if 'auth' in st.session_state:
             rating = st.text_input("Рейтинг", key="add_rating")
             image_url = st.text_input("URL изображения", key="add_image_url", value="https://via.placeholder.com/150")
             
+            # Блок загрузки файла CSV
+            st.subheader("Импорт из CSV-файла")
+            uploaded_file = st.file_uploader("Загрузите CSV-файл с ноутбуками", type=["csv"])
+
+            if uploaded_file is not None:
+                try:
+                    df = pd.read_csv(uploaded_file)
+                    st.write("Загруженные данные:")
+                    st.dataframe(df)
+
+                    if st.button("Импортировать данные из CSV"):
+                        try:
+                            # Отправляем весь CSV одним запросом
+                            response = requests.post(
+                            f"{API_URL}/import_laptops",
+                            json=df.to_dict(orient="records"),
+                            auth=auth
+                            )
+
+                            if response.status_code == 200:
+                                st.success(f"Импортировано {response.json()['inserted_count']} ноутбуков!")
+                            else:
+                                st.error(f"Ошибка импорта: {response.json().get('detail', 'Неизвестная ошибка')}")
+                        except Exception as e:
+                            st.error(f"Ошибка подключения: {e}")
+                except Exception as e:
+                    st.error(f"Ошибка чтения файла: {e}")
+            
             if st.button("Добавить ноутбук", key="add_button"):
                 laptop_data = {
                     "brand": brand,
@@ -142,6 +170,12 @@ if 'auth' in st.session_state:
                         st.error("Ошибка при добавлении ноутбука.")
                 except Exception as e:
                     st.error(f"Ошибка запроса: {e}")
+                    
+            
+                    
+            
+                    
+        
         
         elif admin_menu == "Обновить":
             st.subheader("Обновить данные ноутбука")

@@ -189,3 +189,13 @@ def get_orders(username: str = Depends(get_current_username)):
         item["_id"] = str(item["_id"])
         orders.append(item)
     return orders
+
+
+@app.post("/import_laptops")
+def import_laptops(laptops: List[Laptop], username: str = Depends(get_current_username)):
+    """
+    Импорт списка ноутбуков из CSV в базу данных.
+    """
+    laptops_collection = db["laptops"]
+    result = laptops_collection.insert_many([laptop.dict() for laptop in laptops])
+    return {"inserted_count": len(result.inserted_ids)}
