@@ -2,6 +2,14 @@ import streamlit as st
 import requests
 import pandas as pd
 from requests.auth import HTTPBasicAuth
+import subprocess
+import atexit   
+
+backend_process = subprocess.Popen(["uvicorn", "backend:app", "--reload"])
+
+def on_exit():
+    backend_process.terminate()
+atexit.register(on_exit)
 
 # URL бэкенда (предполагается, что он запущен на localhost:8000)
 API_URL = "http://localhost:8000"

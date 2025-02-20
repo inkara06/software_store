@@ -9,11 +9,28 @@ import secrets
 app = FastAPI()
 
 # Подключение к MongoDB
-client = MongoClient("mongodb://localhost:27017/")
+client = MongoClient("mongodb+srv://pernebekabylaj:pernebekabylaj@cluster0.fu14y.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client["laptop_store"]
+
 
 # Простейшая аутентификация через HTTP Basic (не рекомендуется для продакшена)
 security = HTTPBasic()
+
+
+def create_admin():
+    users = db["users"]
+    existing_admin = users.find_one({"username": "admin"})
+    if not existing_admin:
+        users.insert_one({
+            "username": "admin",
+            "password": "admin"  # В продакшене пароль лучше хэшировать
+        })
+        print("Администратор создан: login: admin, password: admin")
+    else:
+        print("Администратор уже существует.")
+
+# Вызываем создание администратора при запуске
+create_admin()
 
 def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
     user = db["users"].find_one({"username": credentials.username})
