@@ -35,13 +35,6 @@ streamlit run streamlit_app.py
 
 Running `streamlit_app.py` will automatically start the FastAPI backend server.
 
-## MongoDB Atlas Connection Setup
-
-Open the `backend.py` file and edit the connection string:
-```python
-client = MongoClient("mongodb+srv://<username>:<password>@cluster0.fu14y.mongodb.net/?retryWrites=true&w=majority")
-```
-Replace `<username>` and `<password>` with your MongoDB Atlas credentials.
 
 ## Project Structure
 ```
