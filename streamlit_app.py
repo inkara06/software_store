@@ -283,11 +283,11 @@ st.markdown(
 
         /* Кнопки */
         div.stButton > button:first-child {
-            background-color: #2ecc71;
+            background-color: #0FF5FF;
             color: white;
         }
         div.stButton > button:first-child:hover {
-            background-color: #27ae60;
+            background-color: #0FC0C7;
             color: white;
         }
 
