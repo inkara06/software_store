@@ -273,21 +273,21 @@ st.markdown(
     <style>
         /* Основной фон */
         .stApp {
-            background-color: #A9C2E5;
+            background-color: #ffffff ;
         }
 
         /* Боковая панель */
         .st-emotion-cache-1y4p8pa {
-            background-color: #524BC5;
+            background-color: #ffffff ;
         }
 
         /* Кнопки */
         div.stButton > button:first-child {
-            background-color: #0FF5FF;
+            background-color: #2ee12b;
             color: white;
         }
         div.stButton > button:first-child:hover {
-            background-color: #0FC0C7;
+            background-color: #21b21f;
             color: white;
         }
 
