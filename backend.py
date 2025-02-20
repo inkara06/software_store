@@ -131,15 +131,13 @@ class User(BaseModel):
     password: str
 
 @app.post("/register")
-def register(user: User):
-    """
-    Регистрация нового пользователя.
-    """
-    users_collection = db["users"]
-    if users_collection.find_one({"username": user.username}):
+def register_user(user: User):
+    if db["users"].find_one({"username": user.username}):
         raise HTTPException(status_code=400, detail="Пользователь уже существует")
-    users_collection.insert_one(user.dict())
-    return {"detail": "Пользователь успешно зарегистрирован"}
+    user_data = user.dict()
+    user_data["role"] = "user"
+    db["users"].insert_one(user.dict())
+    return {"message": "Пользователь зарегистрирован"}
 
 @app.post("/login")
 def login(credentials: HTTPBasicCredentials = Depends(security)):
@@ -153,7 +151,7 @@ def login(credentials: HTTPBasicCredentials = Depends(security)):
             detail="Неверное имя пользователя или пароль",
             headers={"WWW-Authenticate": "Basic"},
         )
-    return {"detail": "Вход выполнен успешно"}
+    return {"detail": "Вход выполнен успешно", "role": user.get("role", "user")}
 
 # Новые эндпоинты для заказов
 

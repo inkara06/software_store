@@ -16,24 +16,71 @@ API_URL = "http://localhost:8000"
 
 st.title("Управление магазином ноутбуков")
 
-# Режим доступа: Администратор или Пользователь
-mode = st.sidebar.radio("Режим доступа", ["Администратор", "Пользователь"])
+
+
 
 # Аутентификация пользователя через боковую панель
 st.sidebar.header("Аутентификация")
-username = st.sidebar.text_input("Имя пользователя")
-password = st.sidebar.text_input("Пароль", type="password")
+auth_mode = st.sidebar.radio("Выберите действие", ["Войти", "Зарегистрироваться"])
 
-if st.sidebar.button("Войти") and username and password:
-    try:
-        response = requests.post(f"{API_URL}/login", auth=HTTPBasicAuth(username, password))
-        if response.status_code == 200:
-            st.sidebar.success("Вход выполнен успешно!")
-            st.session_state['auth'] = (username, password)
-        else:
-            st.sidebar.error("Ошибка входа. Проверьте данные.")
-    except Exception as e:
-        st.sidebar.error(f"Ошибка подключения: {e}")
+if auth_mode == "Войти":
+    username = st.sidebar.text_input("Имя пользователя")
+    password = st.sidebar.text_input("Пароль", type="password")
+    if st.sidebar.button("Войти") and username and password:
+        try:
+            response = requests.post(f"{API_URL}/login", auth=HTTPBasicAuth(username, password))
+            if response.status_code == 200:
+                data = response.json()
+                st.sidebar.success("Вход выполнен успешно!")
+                st.session_state['auth'] = (username, password)
+                st.session_state['role'] = data.get("role", "user")
+            else:
+                st.sidebar.error("Ошибка входа. Проверьте данные.")
+        except Exception as e:
+            st.sidebar.error(f"Ошибка подключения: {e}")
+
+            
+if auth_mode == "Зарегистрироваться":
+            new_username = st.sidebar.text_input("Новое имя пользователя")
+            new_password = st.sidebar.text_input("Пароль", type="password")
+            confirm_password = st.sidebar.text_input("Подтвердите пароль", type="password")
+            if st.sidebar.button("Зарегистрироваться"):
+                if new_password == confirm_password:
+                    try:
+                        response = requests.post(f"{API_URL}/register", json={
+                        "username": new_username,
+                        "password": new_password
+                    })
+                        if response.status_code == 200:
+                            st.sidebar.success("Пользователь зарегистрирован!")
+                        else:
+                             st.sidebar.error(f"Ошибка регистрации: {response.json().get('detail', 'Неизвестная ошибка')}")
+                    except Exception as e:
+                        st.sidebar.error(f"Ошибка запроса: {e}")
+            else:
+                st.sidebar.error("Пароли не совпадают!")
+
+
+# Режим доступа: Администратор или Пользователь
+if 'auth' in st.session_state:
+    role = st.session_state.get('role', 'user')
+
+    if role == 'admin':
+        mode = st.sidebar.radio("Режим доступа", ["Администратор", "Пользователь"])
+    else:
+        mode = "Пользователь"
+
+    st.sidebar.write(f"Вы вошли как: {st.session_state['auth'][0]} ({role})")
+
+    # Показываем интерфейс только после входа
+    if mode == "Администратор":
+        st.write("Здесь функционал администратора.")
+    elif mode == "Пользователь":
+        st.write("Здесь функционал пользователя.")
+
+else:
+    st.sidebar.info("Пожалуйста, войдите для доступа к функционалу.")
+
 
 if 'auth' in st.session_state:
     auth = HTTPBasicAuth(*st.session_state['auth'])
