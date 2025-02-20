@@ -14,7 +14,7 @@ atexit.register(on_exit)
 # URL бэкенда (предполагается, что он запущен на localhost:8000)
 API_URL = "http://localhost:8000"
 
-st.title("Управление магазином ноутбуков")
+st.markdown("<h1 style='text-align: center;'>Laptops Store</h1>", unsafe_allow_html=True)
 
 
 
@@ -265,3 +265,42 @@ if 'auth' in st.session_state:
                     st.error("Ошибка при получении заказов.")
             except Exception as e:
                 st.error(f"Ошибка запроса: {e}")
+                
+                
+                
+st.markdown(
+    """
+    <style>
+        /* Основной фон */
+        .stApp {
+            background-color: #A9C2E5;
+        }
+
+        /* Боковая панель */
+        .st-emotion-cache-1y4p8pa {
+            background-color: #524BC5;
+        }
+
+        /* Кнопки */
+        div.stButton > button:first-child {
+            background-color: #2ecc71;
+            color: white;
+        }
+        div.stButton > button:first-child:hover {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        /* Текст */
+        .stTextInput>div>div>input {
+            color: #000000;
+        }
+
+        /* Заголовки */
+        h1, h2, h3, h4, h5, h6 {
+            color: #000000;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)

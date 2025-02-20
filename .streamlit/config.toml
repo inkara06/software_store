@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#2ecc71"   # Зеленый (кнопки, активные элементы)
+backgroundColor = "#A9C2E5" # Светло-синий
+secondaryBackgroundColor = "#524BC5"  # Желтый боковой фон
+textColor = "#000000"      # Темно-серый текст
+font = "sans serif"
