@@ -8,7 +8,6 @@ Laptop Store is a web application that allows you to manage laptop data, place o
 - Authentication via HTTP Basic.
 - CRUD operations with laptops (for admin only).
 - Viewing laptop catalog and placing orders (for users).
-- Viewing order history (for users).
 
 ## Technologies Used
 - Backend: FastAPI
