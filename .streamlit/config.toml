@@ -1,6 +1,0 @@
-[theme]
-primaryColor = "#0FF5FF"   # кнопки, активные элементы)
-backgroundColor = "#ffffff" # Светло-синий
-secondaryBackgroundColor = "#524BC5"  # Желтый боковой фон
-textColor = "#000000"      # Темно-серый текст
-font = "sans serif"

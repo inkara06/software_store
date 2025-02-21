@@ -223,7 +223,63 @@ if 'auth' in st.session_state:
         
         # ---- Каталог ----
         if user_menu == "Каталог ноутбуков":
-            st.subheader("Каталог ноутбуков")
+            st.subheader("Поиск ноутбуков 🔍")
+
+            # Форма поиска
+            search_brand = st.text_input("Бренд (можно частично)", key="search_brand")
+            min_price = st.number_input("Минимальная цена", min_value=0.0, format="%.2f", key="min_price")
+            max_price = st.number_input("Максимальная цена", min_value=0.0, format="%.2f", key="max_price")
+            min_rating = st.number_input("Минимальный рейтинг (от 0 до 5)", min_value=0.0, max_value=5.0, step=0.1, key="min_rating")
+
+            if st.button("Найти ноутбуки"):
+                try:
+                    search_params = {
+                        "brand": search_brand if search_brand else None,
+                        "min_price": min_price if min_price > 0 else None,
+                        "max_price": max_price if max_price > 0 else None,
+                        "min_rating": min_rating if min_rating > 0 else None
+                        }
+                    search_params = {k: v for k, v in search_params.items() if v is not None}  # Удаляем пустые фильтры
+
+                    response = requests.get(f"{API_URL}/search_laptops", params=search_params, auth=auth)
+                    if response.status_code == 200:
+                        laptops = response.json()
+                        if laptops:
+                            st.write(f"Найдено {len(laptops)} ноутбуков:")
+                            for laptop in laptops:
+                                col1, col2 = st.columns([1, 3])  
+                                with col1:
+                                    st.image(laptop.get("image_url", "https://via.placeholder.com/150"), width=150)
+                                with col2:
+                                    st.markdown(f"**{laptop['brand']} {laptop['processor_name']}**")
+                                    st.text(f"Цена: {laptop['price']}")
+                                    st.text(f"Рейтинг: {laptop['rating']}")
+
+                                    # Поле для ввода количества и кнопка "Заказать"
+                                    quantity = st.number_input("Количество", min_value=1, step=1, key=f"qty_{laptop['_id']}")
+                                    if st.button("Заказать", key=f"order_{laptop['_id']}"):
+                                        order_data = {
+                                            "laptop_id": laptop["_id"],
+                                            "quantity": int(quantity)
+                                            }
+                                        try:
+                                                order_response = requests.post(f"{API_URL}/orders", json=order_data, auth=auth)
+                                                if order_response.status_code in (200, 201):
+                                                    st.success("Заказ успешно оформлен!")
+                                                else:
+                                                    st.error("Ошибка при оформлении заказа.")
+                                        except Exception as e:
+                                                st.error(f"Ошибка запроса: {e}")
+
+                                        st.markdown("---")  # Разделитель между ноутбуками
+                                    else:
+                                        st.warning("Ничего не найдено по этим критериям.")
+                            else:
+                                st.error("Ошибка при поиске.")
+                except Exception as e:
+                    st.error(f"Ошибка подключения: {e}")
+
+                
             try:
                 response = requests.get(f"{API_URL}/laptops", auth=auth)
                 if response.status_code == 200:
@@ -235,7 +291,7 @@ if 'auth' in st.session_state:
                             for idx, laptop in enumerate(laptops[i:i+num_cols]):
                                 with cols[idx]:
                                     image_url = laptop.get("image_url", "https://via.placeholder.com/150")
-                                    st.image(image_url, use_column_width=True)
+                                    st.image(image_url, use_container_width=True)
                                     st.markdown(f"**{laptop['brand']} {laptop['processor_name']}**")
                                     st.text(f"Цена: {laptop['price']}")
                                     st.text(f"Рейтинг: {laptop['rating']}")
@@ -270,28 +326,39 @@ if 'auth' in st.session_state:
                     if orders:
                         total_sum = 0
                         for order in orders:
-                            # Для каждого заказа получаем информацию о ноутбуке
+                        # Получаем информацию о ноутбуке
                             laptop_id = order["laptop_id"]
                             laptop_response = requests.get(f"{API_URL}/laptops/{laptop_id}", auth=auth)
+                    
                             if laptop_response.status_code == 200:
                                 laptop = laptop_response.json()
-                                # Выводим заказ в стиле "корзины"
-                                col1, col2 = st.columns([1, 3])
+                        
+                                col1, col2, col3 = st.columns([1, 3, 1])  # Разделяем блок на 3 части
+
                                 with col1:
                                     st.image(laptop.get("image_url", "https://via.placeholder.com/150"), width=120)
+
                                 with col2:
                                     st.markdown(f"**{laptop['brand']} {laptop['processor_name']}**")
                                     st.text(f"Цена за штуку: {laptop['price']} KZT")
                                     st.text(f"Количество: {order['quantity']}")
                                     cost = laptop['price'] * order['quantity']
-                                    st.markdown(f"**Сумма:** {cost} KZT")
-                                
-                                st.markdown("---")  # Разделитель между заказами
+                            
+                                with col3:
+                                    if st.button("❌ Удалить", key=f"del_{order['_id']}"):
+                                        delete_response = requests.delete(f"{API_URL}/orders/{order['_id']}", auth=auth)
+                                        if delete_response.status_code == 200:
+                                            st.success("Заказ успешно удалён!")
+                                        else:
+                                            st.error("Ошибка при удалении заказа.")
+
+                                        st.markdown("---")  # Разделитель между заказами
+                                        total_sum += cost
+                    
                                 total_sum += cost
                             else:
                                 st.error("Ошибка при получении данных ноутбука.")
                         
-                        # Итого
                         st.markdown(f"### Общая сумма: {total_sum} KZT")
                     else:
                         st.info("У вас пока нет заказов.")
@@ -299,42 +366,5 @@ if 'auth' in st.session_state:
                     st.error("Ошибка при получении заказов.")
             except Exception as e:
                 st.error(f"Ошибка запроса: {e}")
+
                 
-                
-                
-st.markdown(
-    """
-    <style>
-        /* Основной фон */
-        .stApp {
-            background-color: #ffffff ;
-        }
-
-        /* Боковая панель */
-        .st-emotion-cache-1y4p8pa {
-            background-color: #ffffff ;
-        }
-
-        /* Кнопки */
-        div.stButton > button:first-child {
-            background-color: #2ee12b;
-            color: white;
-        }
-        div.stButton > button:first-child:hover {
-            background-color: #21b21f;
-            color: white;
-        }
-
-        /* Текст */
-        .stTextInput>div>div>input {
-            color: #000000;
-        }
-
-        /* Заголовки */
-        h1, h2, h3, h4, h5, h6 {
-            color: #000000;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)

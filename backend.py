@@ -199,3 +199,54 @@ def import_laptops(laptops: List[Laptop], username: str = Depends(get_current_us
     laptops_collection = db["laptops"]
     result = laptops_collection.insert_many([laptop.dict() for laptop in laptops])
     return {"inserted_count": len(result.inserted_ids)}
+
+
+@app.delete("/orders/{order_id}")
+def delete_order(order_id: str, username: str = Depends(get_current_username)):
+    """
+    Удаление заказа по ID (только если заказ принадлежит пользователю).
+    """
+    orders_collection = db["orders"]
+    
+    # Проверяем, существует ли заказ и принадлежит ли он пользователю
+    order = orders_collection.find_one({"_id": ObjectId(order_id), "username": username})
+    if not order:
+        raise HTTPException(status_code=404, detail="Заказ не найден или у вас нет прав на его удаление.")
+
+    # Удаляем заказ
+    result = orders_collection.delete_one({"_id": ObjectId(order_id)})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=400, detail="Ошибка удаления заказа.")
+    
+    return {"detail": "Заказ успешно удалён"}
+
+
+@app.get("/search_laptops", response_model=List[LaptopResponse])
+def search_laptops(
+    brand: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    min_rating: Optional[float] = None,
+    username: str = Depends(get_current_username)
+):
+    """
+    Поиск ноутбуков по бренду, цене и рейтингу.
+    """
+    query = {}
+    if brand:
+        query["brand"] = {"$regex": brand, "$options": "i"}  # Поиск без учета регистра
+    if min_price is not None:
+        query["price"] = {"$gte": min_price}
+    if max_price is not None:
+        query.setdefault("price", {})["$lte"] = max_price
+    if min_rating is not None:
+        query["rating"] = {"$gte": str(min_rating)}  # Рейтинг в базе как строка
+
+    laptops_collection = db["laptops"]
+    laptops = []
+    for item in laptops_collection.find(query):
+        item["_id"] = str(item["_id"])
+        laptops.append(item)
+
+    return laptops
